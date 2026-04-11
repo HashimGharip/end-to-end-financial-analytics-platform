@@ -1,0 +1,47 @@
+py -m pip install kagglehub
+docker compose up -d --build
+
+docker compose run --rm dbt init
+
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+
+#dbt seed is a dbt command that loads CSV files from your project into your database.
+docker compose run --rm dbt seed --project-dir ecommerce_dbt
+dbt will:
+
+# Read the CSV
+# Create a table in your database (usually your dev schema)
+# The table name matches the CSV file name (ecommerce_sales)
+# Now this table is managed by dbt, not manually created
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+#connect database to check data table inserted
+docker exec -it dbt_postgres psql -U [dbt_user] -d [dbt_database] 
+ex -> docker exec -it dbt_postgres psql -U admin -d ecommerce_db 
+   -> select * from  dev_schema.ecommerce_sales;
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+
+# Run dbt models in the 'ecommerce_dbt' project using Docker Compose
+
+docker compose run --rm dbt run --project-dir ecommerce_dbt
+
+# ────────────────────────────────────────────────────────────────
+# docker compose run       : Start a one-off container from the 'dbt' service
+# --rm                     : Automatically remove the container when the command finishes
+# dbt run                  : Execute all SQL models in your dbt project
+# --project-dir ecommerce_dbt : Specify the folder where your dbt project is located
+#
+# Effect:
+# - dbt reads all models from ecommerce_dbt/models/
+# - Compiles them into SQL
+# - Runs the SQL on your target database (Postgres)
+# - Creates or updates tables/views in the database
+# - Cleans up the container after completion

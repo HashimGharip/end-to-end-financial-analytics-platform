@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: transactions_data
+      - name: users_data
+      - name: cards_data
+      - name: mcc_codes
+      - name: fraud_labels
+      - name: train_fraud_labels

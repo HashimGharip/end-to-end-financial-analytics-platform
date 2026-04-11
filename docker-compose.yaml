@@ -1,0 +1,52 @@
+version: '3.9'  # Specifies the Docker Compose file format version
+
+services:
+  # PostgreSQL database service
+  postgres:
+    image: postgres:15  # Official PostgreSQL image (version 15)
+    container_name: dbt_postgres  # Custom container name for easier reference
+    restart: always  # Automatically restart the container if it stops/crashes
+
+    # Environment variables used to initialize the database
+    environment:
+      POSTGRES_USER: admin        # Database username
+      POSTGRES_PASSWORD: admin123  # Database password
+      POSTGRES_DB: financial_db    # Default database to be created
+
+    ports:
+      - "5432:5432"  # Maps host port 5432 → container port 5432 (DB access from your machine)
+
+    volumes:
+      # Persist database data so it is not lost when the container stops
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - dbt_network  # Connect this service to a custom network
+
+  # dbt service (your analytics / transformation tool)
+  dbt:
+    build: .  # Build the image using the Dockerfile in the current directory
+    container_name: dbt_core  # Custom container name
+
+    volumes:
+      # Mount your local dbt project into the container
+      - ./dbt_project:/usr/app
+
+      # Mount dbt configuration (profiles.yml, etc.)
+      # This is where dbt looks for connection settings
+      - ./dbt_project/.dbt:/root/.dbt
+
+    depends_on:
+      - postgres  # Ensures postgres starts before dbt (not full readiness guarantee)
+
+    networks:
+      - dbt_network  # Same network → allows dbt to connect to postgres via service name
+
+# Named volume for persistent PostgreSQL storage
+volumes:
+  postgres_data:
+
+# Custom network so services can communicate with each other
+networks:
+  dbt_network:
+    driver: bridge  # Default Docker bridge network

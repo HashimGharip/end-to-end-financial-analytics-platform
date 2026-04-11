@@ -1,0 +1,12 @@
+financial_analytics_project:
+  outputs:
+    dev:
+      dbname: financial_db
+      host: postgres
+      pass: admin123
+      port: 5432
+      schema: dev
+      threads: 4
+      type: postgres
+      user: admin
+  target: dev
