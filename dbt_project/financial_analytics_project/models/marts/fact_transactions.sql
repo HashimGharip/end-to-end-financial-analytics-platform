@@ -2,20 +2,22 @@
     materialized='incremental',
     unique_key='transaction_id'
 ) }}
-SELECT
-    transaction_id,
-    transaction_date,
-    user_id,
-    card_id,
-    amount,
-    mcc,
-    credit_score,
-    yearly_income,
-    credit_limit
-FROM {{ ref('int_transactions_enriched') }}
+
+WITH base AS (
+    SELECT *
+    FROM {{ ref('int_transactions_enriched') }}
+)
+
+SELECT *
+FROM base
 
 {% if is_incremental() %}
-WHERE transaction_date > (SELECT max(transaction_date) FROM {{ this }})
+
+WHERE transaction_date >= (
+    SELECT COALESCE(MAX(transaction_date), '1900-01-01')
+    FROM {{ this }}
+)
+
 {% endif %}
 
 
