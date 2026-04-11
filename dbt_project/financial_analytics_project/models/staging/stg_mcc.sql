@@ -2,4 +2,4 @@
 SELECT
     CAST(key AS INT) AS mcc_code,
     LOWER(value) AS mcc_description
-FROM {{ source('dev', 'mcc_codes') }}
+FROM {{ source('bronze', 'mcc_codes') }}

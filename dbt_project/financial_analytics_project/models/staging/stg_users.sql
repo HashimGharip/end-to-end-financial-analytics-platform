@@ -19,4 +19,4 @@ SELECT
     credit_score,
     num_credit_cards
 
-FROM {{ source('dev', 'users_data') }}
+FROM {{ source('bronze', 'users_data') }}

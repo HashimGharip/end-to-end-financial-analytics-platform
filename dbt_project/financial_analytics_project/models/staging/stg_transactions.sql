@@ -13,4 +13,4 @@ SELECT
     zip,
     mcc,
     errors
-FROM {{ source('dev', 'transactions_data') }}
+FROM {{ source('bronze', 'transactions_data') }}

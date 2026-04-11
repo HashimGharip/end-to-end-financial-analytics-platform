@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: bronze
-    schema: bronze
+    schema: dev
     tables:
       - name: transactions_data
       - name: users_data

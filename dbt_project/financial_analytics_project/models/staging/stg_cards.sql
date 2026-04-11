@@ -21,4 +21,4 @@ SELECT
     year_pin_last_changed,
     card_on_dark_web
 
-FROM {{ source('dev', 'cards_data') }}
+FROM {{ source('bronze', 'cards_data') }}
