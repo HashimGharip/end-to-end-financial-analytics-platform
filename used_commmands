@@ -50,3 +50,14 @@ docker compose run --rm dbt run --project-dir financial_analytics_project
 # - Runs the SQL on your target database (Postgres)
 # - Creates or updates tables/views in the database
 # - Cleans up the container after completion
+
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+
+   -> select * from  dev_gold.dim_cards;
+   -> select * from  dev_gold.dim_mcc;
+   -> select * from  dev_gold.dim_users;
+   -> select * from  dev_gold.fact_transactions;
+   -> select * from  dev_silver.int_transactions_enriched;
