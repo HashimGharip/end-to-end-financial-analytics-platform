@@ -67,6 +67,65 @@ models/
      * `dim_mcc`
 
 ---
+## 🔄 SCD Type 2 Implementation (dim_users)
+
+The `dim_users` table implements Slowly Changing Dimension Type 2 (SCD2) to track historical changes in user attributes over time.
+
+### 📌 How It Works
+
+We use a **hash-based change detection strategy** combined with dbt incremental processing.
+
+A `row_hash` is generated using user attributes to detect any changes:
+
+```sql
+MD5(
+    CONCAT(
+        COALESCE(current_age::text, ''),
+        COALESCE(yearly_income::text, ''),
+        COALESCE(credit_score::text, ''),
+        COALESCE(total_debt::text, ''),
+        COALESCE(num_credit_cards::text, ''),
+        COALESCE(address::text, ''),
+        COALESCE(latitude::text, ''),
+        COALESCE(longitude::text, '')
+    )
+)
+
+
+## 📌 Change Detection Logic
+
+New records are inserted only when a change is detected:
+
+```sql
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM {{ this }} t
+    WHERE t.user_id = s.user_id
+      AND t.row_hash = s.row_hash
+)
+```
+## 📌 SCD Type 2 Behavior
+
+When a change is detected:
+
+- A new record is inserted as the **current version**
+- The previous record is closed logically
+
+### Current Record Fields:
+- `valid_from = CURRENT_TIMESTAMP`
+- `valid_to = NULL`
+- `is_current = TRUE`
+
+### Old Record Fields:
+- `valid_to = CURRENT_TIMESTAMP`
+- `is_current = FALSE`
+
+---
+
+## 🔁 Flow Summary
+
+Incoming data → generate `row_hash` → compare with existing records →  
+no change = ignore → change detected = insert new + close old record
 
 ## ⚙️ Technologies Used
 
