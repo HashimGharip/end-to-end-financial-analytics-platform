@@ -90,7 +90,22 @@ MD5(
         COALESCE(longitude::text, '')
     )
 )
+----
 
+changes AS (
+    SELECT s.*
+    FROM source_data s
+
+    {% if is_incremental() %}
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM {{ this }} t
+        WHERE t.user_id = s.user_id
+          AND t.row_hash = s.row_hash
+    )
+    {% endif %}
+)
+```
 
 ## 📌 Change Detection Logic
 
