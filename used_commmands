@@ -9,7 +9,7 @@ docker compose run --rm dbt init
 #--===========================================================================
 
 #dbt seed is a dbt command that loads CSV files from your project into your database.
-docker compose run --rm dbt seed --project-dir ecommerce_dbt
+docker compose run --rm dbt seed --project-dir financial_analytics_project
 dbt will:
 
 # Read the CSV
@@ -22,22 +22,27 @@ dbt will:
 #--===========================================================================
 #connect database to check data table inserted
 docker exec -it dbt_postgres psql -U [dbt_user] -d [dbt_database] 
-ex -> docker exec -it dbt_postgres psql -U admin -d ecommerce_db 
-   -> select * from  dev_schema.ecommerce_sales;
+ex -> docker exec -it dbt_postgres psql -U admin -d financial_db 
+   -> select * from  bronze.users_data;
+   -> select * from  bronze.mcc_codes;
+   -> select * from  bronze.train_fraud_labels;
+   -> select * from  bronze.transactions_data;
+   -> select * from  bronze.cards_data;
+
 
 #--===========================================================================
 #*****************************************************************************
 #--===========================================================================
 
-# Run dbt models in the 'ecommerce_dbt' project using Docker Compose
+# Run dbt models in the 'financial_analytics_project' project using Docker Compose
 
-docker compose run --rm dbt run --project-dir ecommerce_dbt
+docker compose run --rm dbt run --project-dir financial_analytics_project
 
 # ────────────────────────────────────────────────────────────────
 # docker compose run       : Start a one-off container from the 'dbt' service
 # --rm                     : Automatically remove the container when the command finishes
 # dbt run                  : Execute all SQL models in your dbt project
-# --project-dir ecommerce_dbt : Specify the folder where your dbt project is located
+# --project-dir financial_analytics_project : Specify the folder where your dbt project is located
 #
 # Effect:
 # - dbt reads all models from ecommerce_dbt/models/
