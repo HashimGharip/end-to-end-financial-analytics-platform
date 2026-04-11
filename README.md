@@ -20,17 +20,17 @@ The project follows a modern data warehouse design:
 ```
 models/
 │
-├── staging/
+├── staging/                                        --> Bronze Layer
 │   ├── stg_users.sql
 │   ├── stg_transactions.sql
 │   ├── stg_cards.sql
 │   ├── stg_mcc.sql
 │   └── stg_fraud_labels.sql
 │
-├── intermediate/
+├── intermediate/                                   --> Silver Layer
 │   └── int_transactions_enriched.sql
 │
-└── marts/
+└── marts/                                          --> Gold Layer
     ├── fact_transactions.sql
     ├── dim_users.sql
     ├── dim_cards.sql
