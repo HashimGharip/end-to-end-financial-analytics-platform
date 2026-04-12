@@ -19,7 +19,7 @@ WITH raw_source AS (
         CAST(credit_limit AS FLOAT) AS credit_limit,
         acct_open_date,
         year_pin_last_changed,
-        card_on_dark_web,
+        CAST(card_on_dark_web as boolean) AS card_on_dark_web ,
 
         -- Manual Postgres MD5 Implementation
         MD5(

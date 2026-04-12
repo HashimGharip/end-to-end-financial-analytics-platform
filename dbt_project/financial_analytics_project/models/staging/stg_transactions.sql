@@ -34,7 +34,7 @@ WITH raw_transactions AS (
 
 SELECT 
     *,
-    CURRENT_TIMESTAMP AS dbt_updated_at
+    CURRENT_TIMESTAMP AS bronz_updated_at
 FROM raw_transactions
 
 {% if is_incremental() %}
