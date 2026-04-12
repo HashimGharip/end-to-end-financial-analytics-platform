@@ -68,3 +68,9 @@ docker compose run --rm dbt run --project-dir financial_analytics_project
 #--===========================================================================
 
    docker compose run --rm dbt deps --project-dir financial_analytics_project
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+
+   docker compose run --rm dbt snapshot --project-dir financial_analytics_project
