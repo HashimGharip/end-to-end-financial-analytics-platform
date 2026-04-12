@@ -3,8 +3,8 @@
   <img width="980" height="1160" src="images/project architecture.png">
 </p>
 
-This project is an end-to-end data analytics pipeline built using **dbt**, **PostgreSQL**, and **Docker**.
-It simulates a real-world financial data warehouse with layered architecture (Bronze → Silver → Gold).
+This project is an end-to-end data analytics pipeline built using **Docker**, **PostgreSQL** and **dbt**
+It simulates a real-world financial data warehouse with Medallion layered architecture (Bronze → Silver → Gold).
 
 ---
 
@@ -12,9 +12,9 @@ It simulates a real-world financial data warehouse with layered architecture (Br
 
 The project follows a modern data warehouse design:
 
-* **Bronze Layer** → Raw data (loaded via dbt seeds)
-* **Silver Layer** → Cleaned & transformed data (staging + intermediate)
-* **Gold Layer** → Business-ready models (facts & dimensions)
+* **🥉 Bronze (Staging Layer):** Raw ingestion from CSV. 
+* **🥈 Silver (Intermediate Layer):** The "Engine Room." Here, I apply **Semantic Cleaning**, merchant enrichment (MCC mapping), and most importantly, **SCD Type 2 History** for auditing.
+* **🥇 Gold (Marts Layer):** The presentation layer optimized for BI tools. It features a **Star Schema** with denormalized **Fact** tables and **Dimension** tables, utilizing **Temporal Joins** for point-in-time financial reporting.
 
 ---
 
@@ -45,91 +45,34 @@ snapshots/
 └── snp_cards.sql                                      
 
 ```
+---
+
+## 🛠️ Hashing & Identity Management
+
+To ensure data consistency across thousands of rows, I employed two key hashing techniques:
+
+* **Manual Change Hashing:** To optimize performance, I implemented manual hashing in the Bronze layer. This allows the pipeline to skip rows that haven't changed, significantly reducing processing costs during incremental runs.
+* **dbt Surrogate Keys:** I used `dbt_utils.generate_surrogate_key` to create unique, deterministic identifiers across the pipeline. This ensures referential integrity even across disparate sources.
+
+please refer to the [Models Documentation](models/staging/README.md). 
+---
+
+## 🔄 Historical Tracking & Change Detection
+
+One of the core strengths of this platform is its dual-strategy for handling data evolution:
+
+### 1. Manual SCD Type 2 (User Data)
+In `int_users`, I implemented a custom **Incremental Merge** strategy to track changes in user profiles (income, debt, credit score).
+* **Manual Hashing:** I use a custom MD5 hashing implementation to detect changes.
+* **Logic:** When a record's hash changes, dbt expires the old record (`valid_to = current_timestamp`) and inserts a new active record (`is_current = TRUE`).
+
+### 2. dbt Snapshots (Cards Data)
+For `snp_cards`, I utilized dbt's native snapshot engine. This automates the SCD Type 2 logic for credit card attributes, ensuring we have a reliable history of card limits and security statuses.
+
+please refer to the [Models Documentation](models/intermediate/README.md). 
 
 ---
 
-## 🔄 Data Flow
-
-1. **Seeds (Bronze Layer)**
-
-   * Raw CSV data is loaded into PostgreSQL using `dbt seed`
-
-2. **Staging Layer (Silver)**
-
-   * Data cleaning
-   * Renaming columns
-   * Type casting
-   * Basic transformations
-
-3. **Intermediate Layer (Silver)**
-
-   * Joins across multiple entities
-   * Enrichment (user + card + transaction + MCC)
-
-4. **Marts Layer (Gold)**
-
-   * Fact table: `fact_transactions`
-   * Dimension tables:
-
-     * `dim_users`
-     * `dim_cards`
-     * `dim_mcc`
-
----
-## 🔄 SCD Type 2 Implementation (dim_users)
-
-The `dim_users` table implements Slowly Changing Dimension Type 2 (SCD2) to track historical changes in user attributes over time.
-
-### 📌 How It Works
-
-We use a **hash-based change detection strategy** combined with dbt incremental processing.
-
-A `row_hash` is generated using user attributes to detect any changes:
-
-```sql
-MD5(
-    CONCAT(
-        COALESCE(current_age::text, ''),
-        COALESCE(yearly_income::text, ''),
-        COALESCE(credit_score::text, ''),
-        COALESCE(total_debt::text, ''),
-        COALESCE(num_credit_cards::text, ''),
-        COALESCE(address::text, ''),
-        COALESCE(latitude::text, ''),
-        COALESCE(longitude::text, '')
-    )
-)
-```
-
-## 📌 Change Detection Logic
-
-New records are inserted only when a change is detected:
-
-```sql
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM {{ this }} t
-    WHERE t.user_id = s.user_id
-      AND t.row_hash = s.row_hash
-)
-```
-## 📌 SCD Type 2 Behavior
-
-When a change is detected:
-
-- A new record is inserted as the **current version**
-- The previous record is closed logically
-
-### Current Record Fields:
-- `valid_from = CURRENT_TIMESTAMP`
-- `valid_to = NULL`
-- `is_current = TRUE`
-
-### Old Record Fields:
-- `valid_to = CURRENT_TIMESTAMP`
-- `is_current = FALSE`
-
----
 
 ## 🔁 Flow Summary
 
@@ -179,28 +122,10 @@ docker compose run --rm dbt run --full-refresh --project-dir financial_analytics
 
 ---
 
-## ⚡ Key Features
-
-* Layered data modeling (Bronze / Silver / Gold)
-* Incremental processing for large datasets
-* Data masking for sensitive fields (card numbers)
-* Scalable architecture for real-time extension
-
----
-
-## 📌 Future Improvements
-
-* Add data quality tests (`dbt tests`)
-* Implement Slowly Changing Dimensions (SCD)
-* Add fraud detection logic
-* Build dashboards (Power BI / Tableau)
-
----
-
 ## 👨‍💻 Author
 
-**Hashim Gharip**
-Data Engineer | BI Engineer
+**Hashim Asaad**
+Data Engineer and Analytics Engineer
 
 ---
 

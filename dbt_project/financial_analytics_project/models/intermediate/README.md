@@ -45,6 +45,14 @@ Every historical table in this layer includes:
 * `is_current`: A boolean flag for high-performance "current-state" filtering.
 
 ---
+```sql
+-- Example of the manual hashing implementation in Bronze
+MD5(
+    COALESCE(address::text, 'NA') || '|' ||
+    COALESCE(credit_score::text, '0') || '|' ||
+    COALESCE(yearly_income::text, '0')
+) AS row_hash
+---
 
 ## 🚀 Execution Workflow
 
