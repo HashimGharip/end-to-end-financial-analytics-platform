@@ -27,17 +27,23 @@ models/
 │   ├── stg_users.sql
 │   ├── stg_transactions.sql
 │   ├── stg_cards.sql
-│   ├── stg_mcc.sql
-│   └── stg_fraud_labels.sql
+│   └── stg_mcc.sql
+
 │
 ├── intermediate/                                   --> Silver Layer
-│   └── int_transactions_enriched.sql
+│   ├── int_cards.sql
+│   ├── int_transactions.sql
+│   └── int_users.sql
 │
 └── marts/                                          --> Gold Layer
     ├── fact_transactions.sql
     ├── dim_users.sql
-    ├── dim_cards.sql
-    └── dim_mcc.sql
+    └── dim_cards.sql
+
+snapshots/
+│
+└── snp_cards.sql                                      
+
 ```
 
 ---
