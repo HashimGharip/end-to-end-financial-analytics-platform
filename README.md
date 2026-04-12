@@ -1,4 +1,7 @@
 # 📊 End-to-End Financial Analytics Platform
+<p align="center">
+  <img width="980" height="1160" src="images/project architecture.png">
+</p>
 
 This project is an end-to-end data analytics pipeline built using **dbt**, **PostgreSQL**, and **Docker**.
 It simulates a real-world financial data warehouse with layered architecture (Bronze → Silver → Gold).
