@@ -35,6 +35,7 @@ WITH bronze_users AS (
         
         -- Carry over the hash from Bronze to keep logic simple
         row_hash,
+        created_at,
         dbt_updated_at AS  updated_at
     FROM {{ ref('stg_users') }}
 ),
@@ -60,7 +61,8 @@ changes AS (
 new_records AS (
     SELECT
         *,
-        CURRENT_TIMESTAMP AS valid_from,
+        -- CURRENT_TIMESTAMP AS valid_from,
+        created_at AS valid_from,
         CAST(NULL AS timestamptz) AS valid_to,
         TRUE AS is_current
     FROM changes
@@ -82,6 +84,7 @@ SELECT
     credit_score,
     num_credit_cards,
     row_hash,
+    created_at,
     updated_at,
     valid_from,
     valid_to,
@@ -110,6 +113,7 @@ SELECT
     t.credit_score,
     t.num_credit_cards,
     t.row_hash,
+    t.created_at,
     t.updated_at,
     t.valid_from,
     CURRENT_TIMESTAMP AS valid_to,
