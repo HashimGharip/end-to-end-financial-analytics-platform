@@ -54,7 +54,7 @@ To ensure data consistency across thousands of rows, I employed two key hashing 
 * **Manual Change Hashing:** To optimize performance, I implemented manual hashing in the Bronze layer. This allows the pipeline to skip rows that haven't changed, significantly reducing processing costs during incremental runs.
 * **dbt Surrogate Keys:** I used `dbt_utils.generate_surrogate_key` to create unique, deterministic identifiers across the pipeline. This ensures referential integrity even across disparate sources.
 
-please refer to the [Models Documentation](models/staging/README.md). 
+* please refer to the [Models Documentation](dbt_project/financial_analytics_project/models/staging/README.md). 
 ---
 
 ## 🔄 Historical Tracking & Change Detection
@@ -69,7 +69,7 @@ In `int_users`, I implemented a custom **Incremental Merge** strategy to track c
 ### 2. dbt Snapshots (Cards Data)
 For `snp_cards`, I utilized dbt's native snapshot engine. This automates the SCD Type 2 logic for credit card attributes, ensuring we have a reliable history of card limits and security statuses.
 
-please refer to the [Models Documentation](models/intermediate/README.md). 
+please refer to the [Models Documentation](dbt_project/financial_analytics_project/models/intermediate/README.md). 
 
 ---
 
