@@ -33,7 +33,7 @@ models:
   financial_analytics_project:
     staging:
       +schema: bronze
-      +materialized: view
+      +materialized: incremental
 
     intermediate:
       +schema: silver
