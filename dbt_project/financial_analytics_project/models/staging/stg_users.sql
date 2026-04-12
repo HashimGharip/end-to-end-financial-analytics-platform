@@ -26,6 +26,7 @@ WITH raw_users AS (
         CAST(total_debt AS FLOAT) AS total_debt,
         credit_score,
         num_credit_cards,
+        created_at,
 
         -- Generate a hash to detect changes in address or financial status
         {{ dbt_utils.generate_surrogate_key([
