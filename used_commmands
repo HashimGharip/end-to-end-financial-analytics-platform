@@ -61,3 +61,10 @@ docker compose run --rm dbt run --project-dir financial_analytics_project
    -> select * from  dev_gold.dim_users;
    -> select * from  dev_gold.fact_transactions;
    -> select * from  dev_silver.int_transactions_enriched;
+
+
+#--===========================================================================
+#*****************************************************************************
+#--===========================================================================
+
+   docker compose run --rm dbt deps --project-dir financial_analytics_project

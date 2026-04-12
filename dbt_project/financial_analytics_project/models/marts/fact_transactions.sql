@@ -11,7 +11,18 @@
 ) }}
 
 WITH base AS (
-    SELECT *
+    SELECT 
+        transaction_id,
+        user_id,
+        amount,
+        transaction_date,
+        card_id,
+        mcc,
+        mcc_description,
+        credit_score,
+        yearly_income,
+        card_brand,
+        credit_limit
     FROM {{ ref('int_transactions_enriched') }}
 )
 
