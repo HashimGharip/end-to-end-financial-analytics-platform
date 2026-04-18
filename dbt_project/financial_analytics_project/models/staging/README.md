@@ -12,7 +12,7 @@ To handle massive banking datasets (Transactions, Users, Cards), we have impleme
 
 ### 2. Change Detection (Deterministic Hashing)
 * **The Problem:** Source systems often send "Full Dumps" where data hasn't actually changed.
-* **The Solution:** We use `dbt_utils.generate_surrogate_key` to create a `row_hash` (a fingerprint of the data).
+* **The Solution:** We use `MD5()` to create a `row_hash` (a fingerprint of the data).
 * **Logic:** We only perform a database `UPDATE` if the incoming `row_hash` does not match the existing record. This prevents "empty updates" and maintains accurate audit timestamps.
 
 

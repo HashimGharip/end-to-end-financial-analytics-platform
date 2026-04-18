@@ -46,7 +46,7 @@ The Gold layer is where raw data is translated into business insights. Key enric
 
 To ensure a "snappy" experience for dashboard users, we apply the following optimizations:
 * **Table Materialization**: Gold models are materialized as physical tables (not views) to reduce query latency.
-* **Strategic Indexing**: Indexes are applied to common filter columns such as `user_id`, `transaction_date`, and `card_brand`.
+* **Strategic Indexing**: Indexes are applied to common filter columns such as `transaction_id` ,`transaction_date`,`user_id_sk`and `card_brand`.
 * **Denormalization**: Frequently used attributes (like `mcc_description`) are pulled directly into the Fact table to avoid expensive multi-way joins at runtime.
 
 ---
@@ -67,6 +67,6 @@ SELECT
     u.credit_rating,
     SUM(t.amount) as total_spend
 FROM fct_transactions t
-JOIN dim_users u ON t.user_id = u.user_id
+JOIN dim_users u ON t.user_id_sk = u.user_id_sk
 WHERE t.transaction_date > CURRENT_DATE - INTERVAL '30 days'
 GROUP BY 1;

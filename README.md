@@ -52,7 +52,7 @@ snapshots/
 To ensure data consistency across thousands of rows, I employed two key hashing techniques:
 
 * **Manual Change Hashing:** To optimize performance, I implemented manual hashing in the Bronze layer. This allows the pipeline to skip rows that haven't changed, significantly reducing processing costs during incremental runs.
-* **dbt Surrogate Keys:** I used `dbt_utils.generate_surrogate_key` to create unique, deterministic identifiers across the pipeline. This ensures referential integrity even across disparate sources.
+* **dbt Surrogate Keys:** I used `dbt_utils.generate_surrogate_key` to create surrogate key, deterministic identifiers across the pipeline. This ensures referential integrity even across disparate sources.
 
 * please refer to the [Models Documentation](dbt_project/financial_analytics_project/models/staging/README.md). 
 ---
