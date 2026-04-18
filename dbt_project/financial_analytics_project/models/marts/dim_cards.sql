@@ -1,14 +1,16 @@
 {{ config(
     materialized='table',
     post_hook=[
-        "CREATE INDEX IF NOT EXISTS idx_dim_cards_user_id ON {{ this }} (user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_dim_cards_user_id ON {{ this }} (card_id_sk)",
+        "CREATE INDEX IF NOT EXISTS idx_dim_cards_user_id ON {{ this }} (card_id_bk)",
         "CREATE INDEX IF NOT EXISTS idx_dim_cards_brand ON {{ this }} (card_brand)"
     ]
 ) }}
 
 WITH current_cards AS (
     SELECT
-        card_id,
+        card_id_sk,
+        card_id_bk,
         user_id,
         card_brand,
         card_type,

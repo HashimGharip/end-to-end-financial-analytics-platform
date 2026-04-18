@@ -1,3 +1,14 @@
+/*
+  MODEL: Incremental MCC Reference Data (Bronze Layer)
+  
+  LOGIC SUMMARY:
+  - Materialization: Incremental Merge on 'mcc_code'.
+  - Purpose: Maintains a lookup table of Merchant Category Codes and descriptions.
+  - Change Detection: Monitors 'bronze_row_hash' to see if a code's description 
+    (value) has been modified in the source.
+  - Transformation: Standardizes descriptions to lowercase for consistent reporting.
+*/
+
 {{
   config(
     materialized='incremental',
@@ -6,26 +17,24 @@
   )
 }}
 
+WITH base AS (
+    SELECT
+        CAST(key AS INT) AS mcc_code,
+        LOWER(value) AS mcc_description,
+        MD5(
+              COALESCE(key::TEXT, 'NA') || '|' ||
+              COALESCE(value::TEXT, 'NA') 
+            ) AS bronze_row_hash
+    FROM {{ source('bronze', 'mcc_codes') }}
+)
+
 SELECT
-    CAST(key AS INT) AS mcc_code,
-    LOWER(value) AS mcc_description,
-
-    -- We still need a hash to detect if the 'value' (description) changes
-    {{ dbt_utils.generate_surrogate_key(['key', 'value']) }} AS row_hash,
-    
+    *,
     CURRENT_TIMESTAMP AS dbt_updated_at
-
-FROM {{ source('bronze', 'mcc_codes') }}
+FROM base
 
 {% if is_incremental() %}
-  -- Only process if the mapping between code and description has changed
-  WHERE {{ dbt_utils.generate_surrogate_key(['key', 'value']) }} NOT IN (
-      SELECT row_hash FROM {{ this }}
+  WHERE bronze_row_hash NOT IN (
+      SELECT bronze_row_hash FROM {{ this }}
   )
 {% endif %}
-
--- select * from  bronze.mcc_codes;
--- SELECT
---     CAST(key AS INT) AS mcc_code,
---     LOWER(value) AS mcc_description
--- FROM {{ source('bronze', 'mcc_codes') }}

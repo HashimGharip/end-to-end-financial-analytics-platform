@@ -1,14 +1,16 @@
 {{ config(
     materialized='table',
     post_hook=[
-        "CREATE INDEX IF NOT EXISTS idx_dim_users_id ON {{ this }} (user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_dim_users_id ON {{ this }} (user_id_sk)",
+        "CREATE INDEX IF NOT EXISTS idx_dim_users_id ON {{ this }} (user_id_bk)",
         "CREATE INDEX IF NOT EXISTS idx_dim_users_city ON {{ this }} (address)"
     ]
 ) }}
 
 WITH current_users AS (
     SELECT
-        user_id,
+        user_id_sk,
+        user_id_bk,
         current_age,
         retirement_age,
         birth_year,

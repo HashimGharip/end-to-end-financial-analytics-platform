@@ -1,3 +1,15 @@
+/*
+  MODEL: Incremental User Profiles (Bronze Layer)
+  
+  LOGIC SUMMARY:
+  - Materialization: Incremental Merge on 'user_id'.
+  - Change Detection: Monitors 'bronze_row_hash' for updates to address, income, 
+    debt, and credit metrics.
+  - Performance: Only processes users who are new or have had a change in 
+    the specific financial/location fields defined in the MD5 hash.
+  - Metadata: Captures processing timestamp with 'dbt_updated_at'.
+*/
+
 {{
   config(
     materialized='incremental',
@@ -29,14 +41,16 @@ WITH raw_users AS (
         created_at,
 
         -- Generate a hash to detect changes in address or financial status
-        {{ dbt_utils.generate_surrogate_key([
-            'address',
-            'per_capita_income',
-            'yearly_income',
-            'total_debt',
-            'credit_score',
-            'num_credit_cards'
-        ]) }} AS row_hash
+        MD5(
+            COALESCE(address::TEXT, 'NA') || '|' ||
+            COALESCE(per_capita_income::TEXT, 'NA') || '|' ||
+            COALESCE(yearly_income::TEXT, '0') || '|' ||
+            COALESCE(total_debt::TEXT, '0') || '|' ||
+            COALESCE(credit_score::TEXT, 'false')|| '|' ||
+            COALESCE(num_credit_cards::TEXT, 'NA')
+        ) AS bronze_row_hash
+
+        
 
     FROM {{ source('bronze', 'users_data') }}
 )
@@ -47,30 +61,7 @@ SELECT
 FROM raw_users
 
 {% if is_incremental() %}
-  WHERE row_hash NOT IN (
-      SELECT row_hash FROM {{ this }}
+  WHERE bronze_row_hash NOT IN (
+      SELECT bronze_row_hash FROM {{ this }}
   )
 {% endif %}
-
--- select * from  bronze.users_data;
--- SELECT
---     id AS user_id,
---     current_age,
---     retirement_age,
---     birth_year,
---     birth_month,
---     gender,
-
---     -- location
---     address,
---     latitude,
---     longitude,
-
---     -- financial profile (MOST IMPORTANT)
---     per_capita_income,
---     yearly_income,
---     total_debt,
---     credit_score,
---     num_credit_cards
-
--- FROM {{ source('bronze', 'users_data') }}

@@ -1,9 +1,24 @@
+/*
+  MODEL: Card Dimensional Table (Silver Layer - SCD Type 2)
+  
+  LOGIC SUMMARY:
+  - Source: Built on top of 'snp_cards' (dbt Snapshot).
+  - Architecture: Slowly Changing Dimension (SCD) Type 2.
+  - Standardizing: 
+      - Maps 'dbt_scd_id' to 'card_id_sk' (Surrogate Key).
+      - Maps 'card_id' to 'card_id_bk' (Business/Natural Key).
+      - Standardizes dbt's snapshot timestamps to 'valid_from' and 'valid_to'.
+  - Utility: Adds 'is_current' boolean for high-performance filtering of active cards.
+  - Purpose: Tracks history of card status (e.g., changes to credit limits or dark web alerts).
+*/
+
 {{ config(
     materialized='view'
 ) }}
 
 SELECT
-    card_id,
+    dbt_scd_id As card_id_sk,
+    card_id as card_id_bk,
     user_id,
     card_brand,
     card_type,

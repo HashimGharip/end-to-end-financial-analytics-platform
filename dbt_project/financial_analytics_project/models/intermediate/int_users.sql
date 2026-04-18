@@ -1,9 +1,21 @@
+/*
+  MODEL: User Dimensional Table (Silver Layer - SCD Type 2)
+  
+  LOGIC SUMMARY:
+  - Materialization: Incremental Merge using 'user_id_sk'. 
+  - IMPORTANT: We use the Surrogate Key as the unique_key to allow 
+    multiple rows per user_id (preserving history).
+  - History Logic: 
+    - Inserts new versions with a unique 'user_id_sk'.
+    - Updates/Expires old versions by matching their existing 'user_id_sk'.
+*/
+
 {{ config(
     materialized='incremental',
-    unique_key='user_id',
+    unique_key='user_id_sk',
     incremental_strategy='merge',
     post_hook=[
-        "CREATE INDEX IF NOT EXISTS idx_int_users_user_id ON {{ this }} (user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_int_users_user_id ON {{ this }} (user_id_bk)",
         "CREATE INDEX IF NOT EXISTS idx_int_users_is_current ON {{ this }} (is_current)"
     ]
 ) }}
@@ -13,7 +25,7 @@
 -- =========================
 WITH bronze_users AS (
     SELECT
-        user_id,
+        user_id AS user_id_bk,
         current_age,
         retirement_age,
         birth_year,
@@ -34,9 +46,9 @@ WITH bronze_users AS (
         num_credit_cards,
         
         -- Carry over the hash from Bronze to keep logic simple
-        row_hash,
+        bronze_row_hash,
         created_at,
-        dbt_updated_at AS  updated_at
+        dbt_updated_at AS updated_at
     FROM {{ ref('stg_users') }}
 ),
 
@@ -48,10 +60,10 @@ changes AS (
     FROM bronze_users s
     {% if is_incremental() %}
     LEFT JOIN {{ this }} t 
-        ON s.user_id = t.user_id 
+        ON s.user_id_bk = t.user_id_bk 
         AND t.is_current = TRUE
     -- Only process if the user is new OR their hash has changed
-    WHERE t.user_id IS NULL OR s.row_hash != t.row_hash
+    WHERE t.user_id_bk IS NULL OR s.bronze_row_hash != t.bronze_row_hash
     {% endif %}
 ),
 
@@ -61,15 +73,17 @@ changes AS (
 new_records AS (
     SELECT
         *,
-        -- CURRENT_TIMESTAMP AS valid_from,
-        created_at AS valid_from,
+        updated_at AS valid_from,
+        {{ dbt_utils.generate_surrogate_key(['user_id_bk','updated_at']) }} AS user_id_sk,
         CAST(NULL AS timestamptz) AS valid_to,
         TRUE AS is_current
     FROM changes
 )
 
+-- Final selection of new records
 SELECT 
-    user_id,
+    user_id_sk,
+    user_id_bk,
     current_age,
     retirement_age,
     birth_year,
@@ -83,7 +97,7 @@ SELECT
     total_debt,
     credit_score,
     num_credit_cards,
-    row_hash,
+    bronze_row_hash,
     created_at,
     updated_at,
     valid_from,
@@ -98,7 +112,8 @@ FROM new_records
 UNION ALL
 
 SELECT
-    t.user_id,
+    t.user_id_sk,
+    t.user_id_bk,
     t.current_age,
     t.retirement_age,
     t.birth_year,
@@ -112,13 +127,13 @@ SELECT
     t.total_debt,
     t.credit_score,
     t.num_credit_cards,
-    t.row_hash,
+    t.bronze_row_hash,
     t.created_at,
     t.updated_at,
     t.valid_from,
-    CURRENT_TIMESTAMP AS valid_to,
-    FALSE AS is_current
+    CURRENT_TIMESTAMP AS valid_to, -- Set expiration date
+    FALSE AS is_current          -- Deactivate old record
 FROM {{ this }} t
-INNER JOIN changes c ON t.user_id = c.user_id
+INNER JOIN changes c ON t.user_id_bk = c.user_id_bk
 WHERE t.is_current = TRUE
 {% endif %}

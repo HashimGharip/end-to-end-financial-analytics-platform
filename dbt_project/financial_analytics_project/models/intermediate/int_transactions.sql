@@ -1,3 +1,16 @@
+/*
+  MODEL: Enriched Transactions (Silver Layer)
+  
+  LOGIC SUMMARY:
+  - Materialization: Incremental Merge on 'transaction_id'.
+  - Efficiency: Uses a watermark (bronz_updated_at) to limit the scan of the source table.
+  - Enrichment: Joins with 'stg_mcc' to attach readable merchant category descriptions.
+  - Business Logic:
+      - 'is_online': Flagging transactions based on merchant location.
+      - 'has_error': Flagging transactions that contain error codes.
+  - Standardizing: Tracks record processing time with 'silver_updated_at'.
+*/
+
 {{
   config(
     materialized='incremental',
@@ -45,9 +58,6 @@ silver_enriched AS (
             WHEN t.errors IS NOT NULL AND t.errors != '' THEN TRUE 
             ELSE FALSE 
         END AS has_error,
-
-        -- We carry over the hash from Bronze to keep the "fingerprint"
-        t.row_hash,
         CURRENT_TIMESTAMP AS silver_updated_at
 
     FROM bronze_transactions t
